@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,80 +16,39 @@ async function startServer() {
 
   app.use(express.json());
 
-  const ai = new GoogleGenAI(process.env.GEMINI_API_KEY || "");
-  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
-
-  // API Routes
+  // API Route for Gemini
   app.post("/api/roji", async (req, res) => {
     const { action, text, targetLang, query } = req.body;
-    
-    try {
-      let prompt = "";
-      let responseSchema: any = null;
+    const apiKey = process.env.GEMINI_API_KEY;
 
+    if (!apiKey) {
+      return res.status(500).json({ error: "Chiave API mancante nel server." });
+    }
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+      let prompt = "";
       if (action === "translate") {
-        prompt = `Traduci il testo in ${targetLang}. Fornisci la traduzione, la pronuncia (se asiatica) e note culturali in ITALIANO. Testo: "${text}"`;
-        responseSchema = {
-          type: Type.OBJECT,
-          properties: {
-            translatedText: { type: Type.STRING },
-            pronunciation: { type: Type.STRING },
-            notes: { type: Type.STRING },
-          },
-          required: ["translatedText"],
-        };
+        prompt = `Sei Roji, un panda rosso amichevole esperto di lingue. Traduci in ${targetLang}: "${text}". Indica anche la pronuncia e note culturali in ITALIANO.`;
       } else if (action === "grammar") {
-        prompt = `Controlla la grammatica in ${targetLang} del testo: "${text}". Spiega gli errori e dai suggerimenti in ITALIANO.`;
-        responseSchema = {
-          type: Type.OBJECT,
-          properties: {
-            correctedText: { type: Type.STRING },
-            explanation: { type: Type.STRING },
-            suggestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-          },
-          required: ["correctedText", "explanation"],
-        };
+        prompt = `Sei Roji. Analizza la grammatica del testo in ${targetLang}: "${text}". Spiega gli errori in ITALIANO.`;
       } else if (action === "dictionary") {
-        prompt = `Definizione per "${text}" in ${targetLang}. Spiegazioni ed esempi in ITALIANO.`;
-        responseSchema = {
-          type: Type.OBJECT,
-          properties: {
-            word: { type: Type.STRING },
-            meanings: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  partOfSpeech: { type: Type.STRING },
-                  definition: { type: Type.STRING },
-                  example: { type: Type.STRING },
-                },
-                required: ["partOfSpeech", "definition"]
-              }
-            }
-          },
-          required: ["word", "meanings"],
-        };
+        prompt = `Sei Roji. Spiega significato e uso di "${text}" in ${targetLang} con esempi in ITALIANO.`;
       } else if (action === "exercise") {
-        prompt = `Sei Roji, un panda rosso insegnante. Aiuta con questo esercizio di ${targetLang}: "${query}". Rispondi in ITALIANO in modo amichevole.`;
+        prompt = `Sei Roji. Aiuta con questo esercizio di ${targetLang}: "${query}". Rispondi in ITALIANO in modo amichevole.`;
       }
 
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: responseSchema ? {
-          responseMimeType: "application/json",
-          responseSchema: responseSchema,
-        } : undefined,
-      });
-
-      const responseText = result.response.text();
-      res.json(responseSchema ? JSON.parse(responseText) : { text: responseText });
+      const result = await model.generateContent(prompt);
+      res.json({ text: result.response.text() });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: "Errore API Roji" });
+      res.status(500).json({ error: "Errore API Gemini" });
     }
   });
 
+  // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

@@ -1,22 +1,21 @@
-# Codice per integrare Roji nel tuo sito
+# Come usare Roji sul tuo sito
 
-Segui questi passaggi per aggiungere Roji al tuo sito web.
+Roji è ora un assistente leggero che puoi integrare ovunque.
 
-### 1. Requisito Fondamentale: API KEY
-Per far funzionare Roji, devi assicurarti che la chiave API sia configurata:
-1. Apri le impostazioni (**Settings**) qui in AI Studio.
-2. Trova la voce **GEMINI_API_KEY**.
-3. Assicurati che ci sia una chiave valida. Senza questa, il server darà un errore 500.
+### 1. Configurazione della Chiave API
+In AI Studio, Roji utilizza la chiave configurata nelle **Settings** (icona ingranaggio). 
+- Assicurati che `GEMINI_API_KEY` sia presente.
+- Ho spostato la logica sul lato client per una maggiore velocità e semplicità.
 
-### 2. Codice HTML da incollare
-Copia questo blocco nella tua pagina HTML. Sostituisci `URL_DELLA_TUA_APP` con l'indirizzo che ottieni cliccando su **Share** -> **Publish Project**.
+### 2. Codice per l'integrazione (Iframe)
+Copia e incolla questo codice nel tuo sito web.
 
 ```html
-<!-- Container per Roji -->
-<div id="roji-container" style="position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; z-index: 999999; transition: all 0.3s ease;">
+<!-- Assistente Roji -->
+<div id="roji-container" style="position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; z-index: 999999; border-radius: 50%;">
   <iframe 
     id="roji-iframe"
-    src="URL_DELLA_TUA_APP" 
+    src="URL_PUBBLICATO_DA_SHARE" 
     style="width: 100%; height: 100%; border: none; overflow: hidden; background: transparent;"
     scrolling="no"
     allowtransparency="true">
@@ -25,12 +24,11 @@ Copia questo blocco nella tua pagina HTML. Sostituisci `URL_DELLA_TUA_APP` con l
 
 <script>
   window.addEventListener('message', function(event) {
-    // Gestione ridimensionamento automatico
     if (event.data && event.data.type === 'roji-toggle') {
       const container = document.getElementById('roji-container');
       if (event.data.isOpen) {
-        container.style.width = '380px';
-        container.style.height = '600px';
+        container.style.width = '350px';
+        container.style.height = '550px';
       } else {
         container.style.width = '80px';
         container.style.height = '80px';
@@ -41,5 +39,5 @@ Copia questo blocco nella tua pagina HTML. Sostituisci `URL_DELLA_TUA_APP` con l
 ```
 
 ### 3. Note
-- **URL di Sviluppo vs Pubblicato**: Se usi l'URL di sviluppo (`ais-dev-...`), funzionerà solo finché la sessione è attiva. Per un sito reale, usa l'URL pubblico.
-- **Trasparenza**: L'iframe è impostato per essere trasparente, così vedrai solo il panda sul tuo sito.
+- **URL**: Usa l'URL che ottieni da `Share` -> `Publish`. L'URL `ais-dev-...` è solo temporaneo per lo sviluppo.
+- **Vercel**: Se vuoi portarlo su Vercel, basta caricare questi file. Ho rimosso le funzioni serverless complicate per usare direttamente il client.
