@@ -1,0 +1,6 @@
+{
+  "name": "Roji: Red Panda Language Assistant",
+  "description": "An interactive, sticky Red Panda assistant providing real-time translation, grammar checks, and language exercise support for Western and Asian languages.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
