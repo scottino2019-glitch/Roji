@@ -1,18 +1,18 @@
 # Come usare Roji sul tuo sito
 
-Roji è ora un assistente leggero che puoi integrare ovunque.
+Roji è ora un assistente leggero e modernizzato che utilizza l'ultimo modello **Gemini 3 Flash**.
 
-### 1. Configurazione della Chiave API
-In AI Studio, Roji utilizza la chiave configurata nelle **Settings** (icona ingranaggio). 
-- Assicurati che `GEMINI_API_KEY` sia presente.
-- Ho spostato la logica sul lato client per una maggiore velocità e semplicità.
+### 1. Configurazione
+In AI Studio, Roji utilizza la chiave configurata nelle **Settings** (icona ingranaggio a sinistra).
+- Assicurati che sia presente `GEMINI_API_KEY`.
+- L'app ora gestisce le richieste direttamente dal browser per la massima velocità.
 
 ### 2. Codice per l'integrazione (Iframe)
-Copia e incolla questo codice nel tuo sito web.
+Copia e incolla questo codice nel tuo sito web per aggiungere il panda.
 
 ```html
 <!-- Assistente Roji -->
-<div id="roji-container" style="position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; z-index: 999999; border-radius: 50%;">
+<div id="roji-container" style="position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; z-index: 999999; transition: all 0.2s ease-out;">
   <iframe 
     id="roji-iframe"
     src="URL_PUBBLICATO_DA_SHARE" 
@@ -24,6 +24,7 @@ Copia e incolla questo codice nel tuo sito web.
 
 <script>
   window.addEventListener('message', function(event) {
+    // Gestione ridimensionamento automatico quando si apre/chiude la chat
     if (event.data && event.data.type === 'roji-toggle') {
       const container = document.getElementById('roji-container');
       if (event.data.isOpen) {
@@ -38,6 +39,7 @@ Copia e incolla questo codice nel tuo sito web.
 </script>
 ```
 
-### 3. Note
-- **URL**: Usa l'URL che ottieni da `Share` -> `Publish`. L'URL `ais-dev-...` è solo temporaneo per lo sviluppo.
-- **Vercel**: Se vuoi portarlo su Vercel, basta caricare questi file. Ho rimosso le funzioni serverless complicate per usare direttamente il client.
+### 3. Note Tecniche
+- **Modello**: Utilizza `gemini-3-flash-preview` per risposte istantanee.
+- **Trasparenza**: L'iframe è configurato per essere trasparente, così vedrai solo l'icona del panda fluttuante sul tuo sito.
+- **Pubblicazione**: Sostituisci `URL_PUBBLICATO_DA_SHARE` con l'indirizzo che trovi su **Share** -> **Publish Project**.
