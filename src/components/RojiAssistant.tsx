@@ -13,10 +13,7 @@ import {
   Search
 } from 'lucide-react';
 import { 
-  geminiService, 
-  TranslationResult, 
-  GrammarResult, 
-  DictionaryResult 
+  geminiService
 } from '../services/geminiService';
 
 type Tab = 'translate' | 'grammar' | 'dictionary' | 'exercise';
@@ -29,11 +26,26 @@ export default function RojiAssistant() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  useEffect(() => {
+    // Listen for messages from parent if we are a widget
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'open-roji') toggleOpen(true);
+      if (event.data === 'close-roji') toggleOpen(false);
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isOpen]);
+
   const toggleOpen = (state?: boolean) => {
     const nextState = state !== undefined ? state : !isOpen;
     setIsOpen(nextState);
+    
+    // Notify parent to resize iframe if needed
     if (window.parent !== window) {
-      window.parent.postMessage(nextState ? 'roji-open' : 'roji-close', '*');
+      window.parent.postMessage({
+        type: 'roji-toggle',
+        isOpen: nextState
+      }, '*');
     }
   };
 
@@ -76,15 +88,15 @@ export default function RojiAssistant() {
   ];
 
   return (
-    <div className="fixed bottom-0 right-0 z-[999999] flex flex-col items-end pointer-events-none p-6">
+    <div className="fixed bottom-0 right-0 z-[999999] flex flex-col items-end pointer-events-none p-4 sm:p-6">
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
-            className="mb-4 w-[350px] max-w-[calc(100vw-3rem)] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-stone-100 pointer-events-auto"
-            style={{ height: '520px' }}
+            initial={{ opacity: 0, scale: 0.8, y: 50, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.8, y: 50, filter: 'blur(10px)' }}
+            className="mb-4 w-[350px] max-w-[calc(100vw-2rem)] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-stone-100 pointer-events-auto"
+            style={{ height: '520px', maxHeight: 'calc(100vh - 120px)' }}
           >
             {/* Header */}
             <div className="bg-orange-500 p-4 flex items-center justify-between text-white">
@@ -160,73 +172,15 @@ export default function RojiAssistant() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    key={JSON.stringify(result)}
+                    key={typeof result === 'string' ? result : JSON.stringify(result)}
                     className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100"
                   >
-                    {activeTab === 'translate' && (result as TranslationResult).translatedText && (
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">Traduzione in {targetLang}</span>
-                        <p className="text-lg font-medium text-stone-800 leading-tight">{(result as TranslationResult).translatedText}</p>
-                        {(result as TranslationResult).pronunciation && (
-                          <div className="flex items-center gap-1.5 text-stone-400">
-                             <Volume2 size={12} className="shrink-0" />
-                             <p className="text-xs italic">{(result as TranslationResult).pronunciation}</p>
-                          </div>
-                        )}
-                        {(result as TranslationResult).notes && (
-                          <div className="mt-3 pt-3 border-t border-stone-50 flex gap-2 items-start">
-                             <Sparkles size={12} className="text-orange-400 mt-0.5 shrink-0" />
-                             <p className="text-[11px] text-stone-500 italic">{(result as TranslationResult).notes}</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === 'grammar' && (result as GrammarResult).correctedText && (
-                      <div className="space-y-4">
-                        <div>
-                           <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest block mb-1">Versione Corretta</span>
-                           <p className="text-sm font-medium text-stone-800 bg-green-50 p-2 rounded-lg">{(result as GrammarResult).correctedText}</p>
-                        </div>
-                        <div>
-                           <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest block mb-1">Spiegazione di Roji</span>
-                           <p className="text-xs text-stone-600 leading-relaxed">{(result as GrammarResult).explanation}</p>
-                        </div>
-                        {(result as GrammarResult).suggestions?.length > 0 && (
-                          <div>
-                            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block mb-1">Suggerimenti alternativi</span>
-                            <div className="flex flex-wrap gap-2">
-                              {(result as GrammarResult).suggestions.map((s, i) => (
-                                <span key={i} className="text-[10px] bg-stone-50 text-stone-600 px-2 py-1 rounded-md border border-stone-200">
-                                  {s}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {activeTab === 'dictionary' && (result as DictionaryResult).word && (
-                      <div className="space-y-4">
-                        <h4 className="text-xl font-bold text-stone-800">{(result as DictionaryResult).word}</h4>
-                        <div className="space-y-3">
-                          {(result as DictionaryResult).meanings.map((m, i) => (
-                            <div key={i} className="space-y-1">
-                              <span className="text-[10px] font-bold text-orange-400 uppercase italic">{m.partOfSpeech}</span>
-                              <p className="text-xs text-stone-700 font-medium">{m.definition}</p>
-                              {m.example && <p className="text-[11px] text-stone-400 italic">" {m.example} "</p>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {activeTab === 'exercise' && typeof result === 'string' && (
-                      <div className="prose prose-stone prose-sm">
-                        <p className="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">{result}</p>
-                      </div>
-                    )}
+                    <div className="prose prose-stone prose-sm">
+                      <span className="text-[10px] font-bold text-orange-400 uppercase tracking-widest block mb-2">
+                        {activeTab === 'translate' ? 'Traduzione' : activeTab === 'grammar' ? 'Correzione' : activeTab === 'dictionary' ? 'Definizione' : 'Risposta di Roji'}
+                      </span>
+                      <p className="text-sm text-stone-700 whitespace-pre-wrap leading-relaxed">{typeof result === 'string' ? result : JSON.stringify(result, null, 2)}</p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
