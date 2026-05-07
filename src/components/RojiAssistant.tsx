@@ -29,6 +29,14 @@ export default function RojiAssistant() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  const toggleOpen = (state?: boolean) => {
+    const nextState = state !== undefined ? state : !isOpen;
+    setIsOpen(nextState);
+    if (window.parent !== window) {
+      window.parent.postMessage(nextState ? 'roji-open' : 'roji-close', '*');
+    }
+  };
+
   const handleAction = async () => {
     if (!input.trim()) return;
     setLoading(true);
@@ -68,15 +76,15 @@ export default function RojiAssistant() {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+    <div className="fixed bottom-0 right-0 z-[999999] flex flex-col items-end pointer-events-none p-6">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: 20, scale: 0.9, filter: 'blur(10px)' }}
-            className="mb-4 w-[350px] max-w-[calc(100vw-3rem)] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-orange-100 pointer-events-auto"
-            style={{ maxHeight: 'calc(100vh - 8rem)' }}
+            className="mb-4 w-[350px] max-w-[calc(100vw-3rem)] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-stone-100 pointer-events-auto"
+            style={{ height: '520px' }}
           >
             {/* Header */}
             <div className="bg-orange-500 p-4 flex items-center justify-between text-white">
@@ -90,7 +98,7 @@ export default function RojiAssistant() {
                 </div>
               </div>
               <button 
-                onClick={() => setIsOpen(false)}
+                onClick={() => toggleOpen(false)}
                 className="hover:bg-white/20 p-1.5 rounded-full transition-colors"
               >
                 <X size={18} />
@@ -252,9 +260,8 @@ export default function RojiAssistant() {
         )}
       </AnimatePresence>
 
-      {/* Trigger Button - The Red Panda */}
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => toggleOpen()}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="w-16 h-16 bg-orange-500 rounded-full shadow-lg shadow-orange-200 flex items-center justify-center relative group pointer-events-auto"
