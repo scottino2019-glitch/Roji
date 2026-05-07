@@ -6,7 +6,7 @@ export const geminiService = {
       body: JSON.stringify({ action: "translate", text, targetLang: targetLanguage }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Errore");
+    if (!res.ok) throw new Error(JSON.stringify(data));
     return data.text;
   },
 
@@ -17,7 +17,7 @@ export const geminiService = {
       body: JSON.stringify({ action: "grammar", text, targetLang: language }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Errore");
+    if (!res.ok) throw new Error(JSON.stringify(data));
     return data.text;
   },
 
@@ -28,7 +28,7 @@ export const geminiService = {
       body: JSON.stringify({ action: "dictionary", text: word, targetLang: language }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Errore");
+    if (!res.ok) throw new Error(JSON.stringify(data));
     return data.text;
   },
 
@@ -39,7 +39,7 @@ export const geminiService = {
       body: JSON.stringify({ action: "exercise", query, targetLang: language }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Errore");
+    if (!res.ok) throw new Error(JSON.stringify(data));
     return data.text;
   }
 };

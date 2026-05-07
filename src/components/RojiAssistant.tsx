@@ -67,11 +67,21 @@ export default function RojiAssistant() {
       setResult(res);
     } catch (error: any) {
       console.error(error);
-      if (error?.message?.includes('API_KEY_INVALID')) {
-        setResult("Error: La chiave API non è valida o non è configurata correttamente nelle impostazioni.");
-      } else {
-        setResult("Ops! Roji ha avuto un problemino tecnico. Verifica la connessione o la configurazione della chiave API.");
+      let errorMsg = "Ops! Roji ha avuto un problemino tecnico.";
+      
+      // Se il server ha restituito un JSON con dettagli
+      try {
+        if (error instanceof Error && error.message.startsWith('{')) {
+          const details = JSON.parse(error.message);
+          if (details.details) errorMsg = `Errore: ${details.details}`;
+        } else if (error.message) {
+          errorMsg = `Errore: ${error.message}`;
+        }
+      } catch(e) {
+        // Fallback al messaggio generico
       }
+      
+      setResult(errorMsg);
     } finally {
       setLoading(false);
     }

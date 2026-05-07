@@ -29,8 +29,8 @@ export default async function handler(req: any, res: any) {
 
     const result = await model.generateContent(prompt);
     res.status(200).json({ text: result.response.text() });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Errore API Gemini" });
+  } catch (error: any) {
+    console.error("ERRORE GEMINI VERCEL:", error);
+    res.status(500).json({ error: "Errore API Gemini", details: error?.message || "Errore sconosciuto" });
   }
 }

@@ -42,9 +42,10 @@ async function startServer() {
 
       const result = await model.generateContent(prompt);
       res.json({ text: result.response.text() });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Errore API Gemini" });
+    } catch (error: any) {
+      console.error("ERRORE GEMINI:", error);
+      const errorMessage = error?.message || "Errore sconosciuto";
+      res.status(500).json({ error: "Errore API Gemini", details: errorMessage });
     }
   });
 
