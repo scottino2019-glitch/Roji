@@ -27,33 +27,47 @@ async function startServer() {
     
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: "Chiave Gemini non configurata nel server." });
+      console.error("ERRORE: GEMINI_API_KEY non trovata.");
+      return res.status(500).json({ error: "La chiave API Gemini non è configurata. Inseriscila nelle impostazioni (Settings)." });
     }
 
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       let prompt = "";
       if (action === "translate") {
-        prompt = `Traduci il testo in ${targetLang}. Fornisci la traduzione, la pronuncia (se asiatica) e note culturali in ITALIANO. Testo: "${text}"`;
+        prompt = `Sei Roji, un panda rosso amichevole esperto di lingue. 
+        Traduci il seguente testo in ${targetLang}. 
+        Fornisci:
+        1. La traduzione corretta.
+        2. La pronuncia fonetica (se la lingua usa caratteri non latini).
+        3. Eventuali brevi note grammaticali o culturali interessanti in ITALIANO.
+        
+        Testo da tradurre: "${text}"
+        Rispondi in modo cordiale.`;
       } else if (action === "grammar") {
-        prompt = `Controlla la grammatica in ${targetLang} del testo: "${text}". Spiega gli errori e dai suggerimenti in ITALIANO.`;
+        prompt = `Sei Roji, un panda rosso insegnante.
+        Analizza la grammatica del seguente testo in ${targetLang}: "${text}".
+        Spiega eventuali errori in ITALIANO e fornisci la versione corretta. 
+        Sii incoraggiante!`;
       } else if (action === "dictionary") {
-        prompt = `Definizione per "${text}" in ${targetLang}. Spiegazioni ed esempi in ITALIANO.`;
+        prompt = `Sei Roji. Spiega il significato della parola "${text}" in ${targetLang}.
+        Fornisci definizioni semplici, esempi d'uso e se possibile dei sinonimi.
+        Spiega tutto in ITALIANO.`;
       } else if (action === "exercise") {
-        prompt = `Sei Roji, un panda rosso insegnante. Aiuta con questo esercizio di ${targetLang}: "${query}". Rispondi in ITALIANO in modo amichevole.`;
+        prompt = `Sei Roji, un panda rosso tutor. 
+        Aiuta lo studente con questo esercizio o domanda di ${targetLang}: "${query}".
+        Non dare solo la soluzione, spiega il ragionamento in ITALIANO in modo che lo studente possa imparare.`;
       }
 
       const result = await model.generateContent(prompt);
       const responseText = result.response.text();
       
-      // We'll try to parse JSON if we requested it in the prompt, 
-      // but for simplicity and robustness we return text for now.
       res.json({ text: responseText });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Errore API Roji" });
+    } catch (error: any) {
+      console.error("Gemini API Error:", error);
+      res.status(500).json({ error: "Si è verificato un errore durante la comunicazione con Roji. Riprova più tardi." });
     }
   });
 
