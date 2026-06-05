@@ -96,7 +96,7 @@ export default function RojiAssistant() {
 
   const languages = [
     'Inglese', 'Giapponese', 'Cinese (Mandarin)', 'Coreano', 
-    'Italiano', 'Spagnolo', 'Francese', 'Tedesco'
+    'Italiano', 'Spagnolo', 'Francese', 'Tedesco', 'Russo', 'Hindi', 'Thai'
   ];
 
   return (
